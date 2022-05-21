@@ -6,6 +6,7 @@ public class AwesomeWarriorGame {
     private final String PAYS = "Pays";
 
 
+
     private final int challenges;
     private final int decisions;
 
