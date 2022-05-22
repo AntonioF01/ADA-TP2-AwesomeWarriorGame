@@ -9,6 +9,7 @@ public class AwesomeWarriorGame {
     private final int challenges;
     private final int decisions;
 
+
     private final List<Edge>[] graph;
 
     private int initialChallenge;
