@@ -14,12 +14,13 @@ public class Main {
         AwesomeWarriorGame game = new AwesomeWarriorGame(challenges, decisions);
 
         for (int i = 0; i < decisions; i++) {
-            aux = in.readLine().split("");
+            aux = in.readLine().split(" ");
             game.handleConnection(Integer.parseInt(aux[0]), aux[1], Integer.parseInt(aux[2]), Integer.parseInt(aux[3]));
         }
 
-        aux = in.readLine().split("");
+        aux = in.readLine().split(" ");
         game.processFinalLine(Integer.parseInt(aux[0]), Integer.parseInt(aux[1]), Integer.parseInt(aux[2]));
+        System.out.println(game.solve());
     }
 
 
