@@ -9,7 +9,6 @@ public class AwesomeWarriorGame {
     private final int challenges;
     private final int decisions;
 
-
     private final List<Edge>[] graph;
 
     private int initialChallenge;
@@ -27,7 +26,7 @@ public class AwesomeWarriorGame {
     }
 
     public void handleConnection(int finishedChallenge, String action, int energy, int newChallenge) {
-        graph[finishedChallenge].add(new Edge(newChallenge, action.equals(PAYS) ? -energy : energy));
+        graph[finishedChallenge].add(new Edge(newChallenge, action.equals(PAYS) ? energy : -energy));
     }
 
     public void processFinalLine(int initialChallenge, int finalChallenge, int initialEnergy) {
@@ -52,9 +51,6 @@ public class AwesomeWarriorGame {
             if (!changes)
                 break;
         }
-        // Negative-weight cycles detection
-       if (changes && updateLengths(graph, length, via))
-            return null;
         return length;
     }
 
@@ -78,9 +74,9 @@ public class AwesomeWarriorGame {
 
     public String solve() {
         int energyConsumed = this.bellmanFord(this.graph, this.initialChallenge, this.decisions)[finalChallenge];
-        if (energyConsumed > 0)
+        if (energyConsumed <= 0)
             return FINAl_ENERGY_OUTPUT;
-        else return String.valueOf(initialEnergy + energyConsumed);
+        else return String.valueOf(initialEnergy - energyConsumed);
     }
 
     private static class Edge {
@@ -92,6 +88,4 @@ public class AwesomeWarriorGame {
             this.weight = weight;
         }
     }
-
-
 }
