@@ -10,7 +10,7 @@ public class Main {
         String[] aux = in.readLine().split(" ");
         int challenges = Integer.parseInt(aux[0]);
         int decisions = Integer.parseInt(aux[1]);
-        System.out.println("aa");
+        System.out.println("aaa");
 
         AwesomeWarriorGame game = new AwesomeWarriorGame(challenges, decisions);
 
