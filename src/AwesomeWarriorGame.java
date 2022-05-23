@@ -1,12 +1,15 @@
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 public class AwesomeWarriorGame {
 
     private final String PAYS = "Pays";
     private final String FINAl_ENERGY_OUTPUT = "Full of energy";
 
-    private final List<Edge>[] graph;
+    private final List<Edge>[] successors;
+    private final Set<Integer> canReachFinal;
 
     private int initialChallenge;
     private int finalChallenge;
@@ -14,23 +17,26 @@ public class AwesomeWarriorGame {
 
     @SuppressWarnings("unchecked")
     public AwesomeWarriorGame(int challenges) {
-        this.graph = new LinkedList[challenges];
+        this.successors = new LinkedList[challenges];
+        this.canReachFinal = new HashSet<>(challenges);
 
-        for (int i = 0; i < graph.length; i++)
-            graph[i] = new LinkedList<>();
+        for (int i = 0; i < challenges; i++)
+            successors[i] = new LinkedList<>();
     }
 
     public void handleConnection(int finishedChallenge, String action, int energy, int newChallenge) {
-        graph[finishedChallenge].add(new Edge(newChallenge, action.equals(PAYS) ? energy : -energy));
+        int weight = action.equals(PAYS) ? energy : -energy;
+        successors[finishedChallenge].add(new Edge(newChallenge, weight));
     }
 
     public void processFinalLine(int initialChallenge, int finalChallenge, int initialEnergy) {
         this.finalChallenge = finalChallenge;
         this.initialChallenge = initialChallenge;
         this.initialEnergy = initialEnergy;
+        this.canReachFinal.add(finalChallenge);
     }
 
-    private long bellmanFord(List<Edge>[] graph, int origin) {
+    private long bellmanFord(List<Edge>[] graph, int origin) throws NegativeWeightCycleException {
         long[] length = new long[graph.length];
         int[] via = new int[graph.length];
 
@@ -39,12 +45,19 @@ public class AwesomeWarriorGame {
 
         length[origin] = 0;
         via[origin] = origin;
-        boolean changes;
+        boolean changes = false;
 
         for (int i = 1; i < graph.length; i++) {
             changes = updateLengths(graph, length, via);
             if (!changes)
                 break;
+        }
+        long[] aux = length.clone();
+        if (changes && updateLengths(graph, length, via)) {
+            for (int i = 0; i < aux.length; i++) {
+                if (aux[i] != length[i] && canReachFinal.contains(i))
+                    throw new NegativeWeightCycleException();
+            }
         }
         return length[finalChallenge];
     }
@@ -54,6 +67,8 @@ public class AwesomeWarriorGame {
         for (int firstNode = 0; firstNode < graph.length; firstNode++)
             for (Edge e : graph[firstNode]) {
                 int secondNode = e.node;
+                if (canReachFinal.contains(secondNode))
+                    canReachFinal.add(firstNode);
                 if (len[firstNode] < Integer.MAX_VALUE) {
                     long newLen = len[firstNode] + e.weight;
                     if (newLen < len[secondNode]) {
@@ -67,12 +82,16 @@ public class AwesomeWarriorGame {
     }
 
     public String solve() {
-        long energyConsumed = this.bellmanFord(this.graph, this.initialChallenge);
-        if (energyConsumed <= 0)
+        try {
+            long energyConsumed = this.bellmanFord(this.successors, this.initialChallenge);
+            if (energyConsumed <= 0)
+                return FINAl_ENERGY_OUTPUT;
+            else {
+                long finalEnergy = Math.max(initialEnergy - energyConsumed, 0);
+                return String.valueOf(finalEnergy);
+            }
+        } catch (NegativeWeightCycleException e) {
             return FINAl_ENERGY_OUTPUT;
-        else {
-            long finalEnergy = Math.max(initialEnergy - energyConsumed, 0);
-            return String.valueOf(finalEnergy);
         }
     }
 
@@ -84,5 +103,8 @@ public class AwesomeWarriorGame {
             this.node = node;
             this.weight = weight;
         }
+    }
+
+    private static class NegativeWeightCycleException extends Exception {
     }
 }
