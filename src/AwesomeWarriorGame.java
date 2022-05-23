@@ -6,9 +6,6 @@ public class AwesomeWarriorGame {
     private final String PAYS = "Pays";
     private final String FINAl_ENERGY_OUTPUT = "Full of energy";
 
-    private final int challenges;
-    private final int decisions;
-
     private final List<Edge>[] graph;
 
     private int initialChallenge;
@@ -18,8 +15,6 @@ public class AwesomeWarriorGame {
     @SuppressWarnings("unchecked")
     public AwesomeWarriorGame(int challenges, int decisions) {
         this.graph = new LinkedList[challenges];
-        this.challenges = challenges;
-        this.decisions = decisions;
 
         for (int i = 0; i < graph.length; i++)
             graph[i] = new LinkedList<>();
@@ -35,32 +30,32 @@ public class AwesomeWarriorGame {
         this.initialEnergy = initialEnergy;
     }
 
-    private int[] bellmanFord(List<Edge>[] graph, int origin, int limit) {
-        int[] length = new int[graph.length];
+    private long bellmanFord(List<Edge>[] graph, int origin) {
+        long[] length = new long[graph.length];
         int[] via = new int[graph.length];
 
         for (int node = 0; node < graph.length; node++)
-            length[node] = Integer.MAX_VALUE;
+            length[node] = Long.MAX_VALUE;
 
         length[origin] = 0;
         via[origin] = origin;
-        boolean changes = false;
+        boolean changes;
 
         for (int i = 1; i < graph.length; i++) {
             changes = updateLengths(graph, length, via);
             if (!changes)
                 break;
         }
-        return length;
+        return length[finalChallenge];
     }
 
-    private boolean updateLengths(List<Edge>[] graph, int[] len, int[] via) {
+    private boolean updateLengths(List<Edge>[] graph, long[] len, int[] via) {
         boolean changes = false;
-        for (int firstNode = 0; firstNode < graph.length; firstNode++) {
+        for (int firstNode = 0; firstNode < graph.length; firstNode++)
             for (Edge e : graph[firstNode]) {
                 int secondNode = e.node;
                 if (len[firstNode] < Integer.MAX_VALUE) {
-                    int newLen = len[firstNode] + e.weight;
+                    long newLen = len[firstNode] + e.weight;
                     if (newLen < len[secondNode]) {
                         len[secondNode] = newLen;
                         via[secondNode] = firstNode;
@@ -68,15 +63,17 @@ public class AwesomeWarriorGame {
                     }
                 }
             }
-        }
         return changes;
     }
 
     public String solve() {
-        int energyConsumed = this.bellmanFord(this.graph, this.initialChallenge, this.decisions)[finalChallenge];
+        long energyConsumed = this.bellmanFord(this.graph, this.initialChallenge);
         if (energyConsumed <= 0)
             return FINAl_ENERGY_OUTPUT;
-        else return String.valueOf(initialEnergy - energyConsumed);
+        else {
+            long finalEnergy = Math.max(initialEnergy - energyConsumed, 0);
+            return String.valueOf(finalEnergy);
+        }
     }
 
     private static class Edge {
