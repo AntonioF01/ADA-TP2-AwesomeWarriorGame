@@ -13,7 +13,7 @@ public class AwesomeWarriorGame {
     private int initialEnergy;
 
     @SuppressWarnings("unchecked")
-    public AwesomeWarriorGame(int challenges, int decisions) {
+    public AwesomeWarriorGame(int challenges) {
         this.graph = new LinkedList[challenges];
 
         for (int i = 0; i < graph.length; i++)
