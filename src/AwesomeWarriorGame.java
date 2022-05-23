@@ -11,12 +11,14 @@ public class AwesomeWarriorGame {
     private final List<Edge>[] successors;
     private final Set<Integer> canReachFinal;
 
+    private final int numNodes;
     private int initialChallenge;
     private int finalChallenge;
     private int initialEnergy;
 
     @SuppressWarnings("unchecked")
     public AwesomeWarriorGame(int challenges) {
+        this.numNodes = challenges;
         this.successors = new LinkedList[challenges];
         this.canReachFinal = new HashSet<>(challenges);
 
@@ -37,34 +39,32 @@ public class AwesomeWarriorGame {
     }
 
     private long bellmanFord(List<Edge>[] graph, int origin) throws NegativeWeightCycleException {
-        long[] length = new long[graph.length];
-        int[] via = new int[graph.length];
+        long[] length = new long[this.numNodes];
 
-        for (int node = 0; node < graph.length; node++)
+        for (int node = 0; node < this.numNodes; node++)
             length[node] = Long.MAX_VALUE;
 
         length[origin] = 0;
-        via[origin] = origin;
         boolean changes = false;
 
-        for (int i = 1; i < graph.length; i++) {
-            changes = updateLengths(graph, length, via);
+        for (int i = 1; i < this.numNodes; i++) {
+            changes = updateLengths(graph, length);
             if (!changes)
                 break;
         }
-        long[] aux = length.clone();
-        if (changes && updateLengths(graph, length, via)) {
-            for (int i = 0; i < aux.length; i++) {
-                if (aux[i] != length[i] && canReachFinal.contains(i))
+
+        long[] prevLength = length.clone();
+        if (changes && updateLengths(graph, length))
+            for (int i = 0; i < this.numNodes; i++)
+                if (prevLength[i] != length[i] && canReachFinal.contains(i))
                     throw new NegativeWeightCycleException();
-            }
-        }
+
         return length[finalChallenge];
     }
 
-    private boolean updateLengths(List<Edge>[] graph, long[] len, int[] via) {
+    private boolean updateLengths(List<Edge>[] graph, long[] len) {
         boolean changes = false;
-        for (int firstNode = 0; firstNode < graph.length; firstNode++)
+        for (int firstNode = 0; firstNode < this.numNodes; firstNode++)
             for (Edge e : graph[firstNode]) {
                 int secondNode = e.node;
                 if (canReachFinal.contains(secondNode))
@@ -73,7 +73,6 @@ public class AwesomeWarriorGame {
                     long newLen = len[firstNode] + e.weight;
                     if (newLen < len[secondNode]) {
                         len[secondNode] = newLen;
-                        via[secondNode] = firstNode;
                         changes = true;
                     }
                 }
