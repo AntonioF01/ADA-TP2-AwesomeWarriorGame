@@ -8,25 +8,25 @@ public class AwesomeWarriorGame {
     private final String PAYS = "Pays";
     private final String FINAl_ENERGY_OUTPUT = "Full of energy";
 
-    private final List<Edge>[] successors;
+    private final Edge[] edges;
+    private int numEdges;
 
     private final int numNodes;
     private int initialChallenge;
     private int finalChallenge;
     private int initialEnergy;
 
-    @SuppressWarnings("unchecked")
-    public AwesomeWarriorGame(int challenges) {
-        this.numNodes = challenges;
-        this.successors = new LinkedList[challenges];
 
-        for (int i = 0; i < challenges; i++)
-            successors[i] = new LinkedList<>();
+    @SuppressWarnings("unchecked")
+    public AwesomeWarriorGame(int challenges, int decisions) {
+        this.numNodes = challenges;
+        this.edges = new Edge[decisions];
+        numEdges = 0;
     }
 
     public void handleConnection(int finishedChallenge, String action, int energy, int newChallenge) {
         int weight = action.equals(PAYS) ? energy : -energy;
-        successors[finishedChallenge].add(new Edge(newChallenge, weight));
+        edges[numEdges++] = new Edge(finishedChallenge, weight, newChallenge);
     }
 
     public void processFinalLine(int initialChallenge, int finalChallenge, int initialEnergy) {
@@ -35,25 +35,25 @@ public class AwesomeWarriorGame {
         this.initialEnergy = initialEnergy;
     }
 
-    private long bellmanFord(List<Edge>[] graph, int origin) throws NegativeWeightCycleException {
+    private long bellmanFord(Edge[] edges, int origin) throws NegativeWeightCycleException {
         long[] length = new long[this.numNodes];
-        boolean changes = false;
-        Set<Integer> canReachFinal = new HashSet<>();
-
         for (int node = 0; node < this.numNodes; node++)
             length[node] = Long.MAX_VALUE;
-
         length[origin] = 0;
+
+        boolean changes = false;
+
+        Set<Integer> canReachFinal = new HashSet<>();
         canReachFinal.add(finalChallenge);
 
         for (int i = 1; i < this.numNodes; i++) {
-            changes = updateLengths(graph, length, canReachFinal);
+            changes = updateLengths(edges, length, canReachFinal);
             if (!changes)
                 break;
         }
 
         long[] prevLength = length.clone();
-        if (changes && updateLengths(graph, length, canReachFinal))
+        if (changes && updateLengths(edges, length, canReachFinal))
             for (int i = 0; i < this.numNodes; i++)
                 if (prevLength[i] != length[i] && canReachFinal.contains(i))
                     throw new NegativeWeightCycleException();
@@ -61,27 +61,25 @@ public class AwesomeWarriorGame {
         return length[finalChallenge];
     }
 
-    private boolean updateLengths(List<Edge>[] graph, long[] len, Set<Integer> canReachFinal) {
+    private boolean updateLengths(Edge[] edges, long[] len, Set<Integer> canReachFinal) {
         boolean changes = false;
-        for (int firstNode = 0; firstNode < this.numNodes; firstNode++)
-            for (Edge e : graph[firstNode]) {
-                int secondNode = e.node;
-                if (canReachFinal.contains(secondNode))
-                    canReachFinal.add(firstNode);
-                if (len[firstNode] < Integer.MAX_VALUE) {
-                    long newLen = len[firstNode] + e.weight;
-                    if (newLen < len[secondNode]) {
-                        len[secondNode] = newLen;
-                        changes = true;
-                    }
+        for (Edge e : edges) {
+            if (canReachFinal.contains(e.secondNode))
+                canReachFinal.add(e.firstNode);
+            if (len[e.firstNode] < Integer.MAX_VALUE) {
+                long newLen = len[e.firstNode] + e.weight;
+                if (newLen < len[e.secondNode]) {
+                    len[e.secondNode] = newLen;
+                    changes = true;
                 }
             }
+        }
         return changes;
     }
 
     public String solve() {
         try {
-            long energyConsumed = this.bellmanFord(this.successors, this.initialChallenge);
+            long energyConsumed = this.bellmanFord(this.edges, this.initialChallenge);
             if (energyConsumed <= 0)
                 return FINAl_ENERGY_OUTPUT;
             else {
@@ -94,12 +92,14 @@ public class AwesomeWarriorGame {
     }
 
     private static class Edge {
-        private final int node;
+        private final int firstNode;
+        private final int secondNode;
         private final int weight;
 
-        public Edge(int node, int weight) {
-            this.node = node;
+        public Edge(int firstNode, int weight, int secondNode) {
+            this.firstNode = firstNode;
             this.weight = weight;
+            this.secondNode = secondNode;
         }
     }
 

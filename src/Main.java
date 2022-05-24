@@ -11,7 +11,7 @@ public class Main {
         int challenges = Integer.parseInt(aux[0]);
         int decisions = Integer.parseInt(aux[1]);
 
-        AwesomeWarriorGame game = new AwesomeWarriorGame(challenges);
+        AwesomeWarriorGame game = new AwesomeWarriorGame(challenges, decisions);
 
         for (int i = 0; i < decisions; i++) {
             aux = in.readLine().split(" ");
