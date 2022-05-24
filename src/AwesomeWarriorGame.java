@@ -9,7 +9,6 @@ public class AwesomeWarriorGame {
     private final String FINAl_ENERGY_OUTPUT = "Full of energy";
 
     private final List<Edge>[] successors;
-    private final Set<Integer> canReachFinal;
 
     private final int numNodes;
     private int initialChallenge;
@@ -20,7 +19,6 @@ public class AwesomeWarriorGame {
     public AwesomeWarriorGame(int challenges) {
         this.numNodes = challenges;
         this.successors = new LinkedList[challenges];
-        this.canReachFinal = new HashSet<>(challenges);
 
         for (int i = 0; i < challenges; i++)
             successors[i] = new LinkedList<>();
@@ -35,26 +33,27 @@ public class AwesomeWarriorGame {
         this.finalChallenge = finalChallenge;
         this.initialChallenge = initialChallenge;
         this.initialEnergy = initialEnergy;
-        this.canReachFinal.add(finalChallenge);
     }
 
     private long bellmanFord(List<Edge>[] graph, int origin) throws NegativeWeightCycleException {
         long[] length = new long[this.numNodes];
+        boolean changes = false;
+        Set<Integer> canReachFinal = new HashSet<>();
 
         for (int node = 0; node < this.numNodes; node++)
             length[node] = Long.MAX_VALUE;
 
         length[origin] = 0;
-        boolean changes = false;
+        canReachFinal.add(finalChallenge);
 
         for (int i = 1; i < this.numNodes; i++) {
-            changes = updateLengths(graph, length);
+            changes = updateLengths(graph, length, canReachFinal);
             if (!changes)
                 break;
         }
 
         long[] prevLength = length.clone();
-        if (changes && updateLengths(graph, length))
+        if (changes && updateLengths(graph, length, canReachFinal))
             for (int i = 0; i < this.numNodes; i++)
                 if (prevLength[i] != length[i] && canReachFinal.contains(i))
                     throw new NegativeWeightCycleException();
@@ -62,7 +61,7 @@ public class AwesomeWarriorGame {
         return length[finalChallenge];
     }
 
-    private boolean updateLengths(List<Edge>[] graph, long[] len) {
+    private boolean updateLengths(List<Edge>[] graph, long[] len, Set<Integer> canReachFinal) {
         boolean changes = false;
         for (int firstNode = 0; firstNode < this.numNodes; firstNode++)
             for (Edge e : graph[firstNode]) {
