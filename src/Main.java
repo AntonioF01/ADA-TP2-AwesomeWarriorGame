@@ -20,7 +20,11 @@ public class Main {
 
         aux = in.readLine().split(" ");
         game.processFinalLine(Integer.parseInt(aux[0]), Integer.parseInt(aux[1]), Integer.parseInt(aux[2]));
-        System.out.println(game.solve());
+        try {
+            System.out.println(game.solve());
+        } catch (NegativeWeightCycleException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
 

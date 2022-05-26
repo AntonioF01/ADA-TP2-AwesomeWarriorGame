@@ -1,27 +1,22 @@
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
 
 public class AwesomeWarriorGame {
 
     private final String PAYS = "Pays";
-    private final String FINAl_ENERGY_OUTPUT = "Full of energy";
 
     private final Edge[] edges;
+    private final int numNodes;
     private int numEdges;
 
-    private final int numNodes;
     private int initialChallenge;
     private int finalChallenge;
     private int initialEnergy;
 
-
-    @SuppressWarnings("unchecked")
     public AwesomeWarriorGame(int challenges, int decisions) {
         this.numNodes = challenges;
         this.edges = new Edge[decisions];
-        numEdges = 0;
+        this.numEdges = 0;
     }
 
     public void handleConnection(int finishedChallenge, String action, int energy, int newChallenge) {
@@ -77,18 +72,11 @@ public class AwesomeWarriorGame {
         return changes;
     }
 
-    public String solve() {
-        try {
-            long energyConsumed = this.bellmanFord(this.edges, this.initialChallenge);
-            if (energyConsumed <= 0)
-                return FINAl_ENERGY_OUTPUT;
-            else {
-                long finalEnergy = Math.max(initialEnergy - energyConsumed, 0);
-                return String.valueOf(finalEnergy);
-            }
-        } catch (NegativeWeightCycleException e) {
-            return FINAl_ENERGY_OUTPUT;
-        }
+    public long solve() throws NegativeWeightCycleException {
+        long energyConsumed = this.bellmanFord(this.edges, this.initialChallenge);
+        if (energyConsumed <= 0)
+            throw new NegativeWeightCycleException();
+        return Math.max(initialEnergy - energyConsumed, 0);
     }
 
     private static class Edge {
@@ -101,8 +89,5 @@ public class AwesomeWarriorGame {
             this.weight = weight;
             this.secondNode = secondNode;
         }
-    }
-
-    private static class NegativeWeightCycleException extends Exception {
     }
 }
